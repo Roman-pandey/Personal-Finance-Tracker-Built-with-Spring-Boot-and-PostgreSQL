@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { incomeService, categoryService } from '../services/dataService';
 import { Button, Input } from '../components/UI';
-import { Plus, Trash2, Edit2, Search, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Edit2, Search, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
@@ -20,6 +20,10 @@ export const Income = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedTimeframe, setSelectedTimeframe] = useState('ALL');
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -48,6 +52,11 @@ export const Income = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset to page 1 whenever any filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedTimeframe]);
 
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return null;
@@ -108,6 +117,12 @@ export const Income = () => {
   });
 
   const totalFilteredAmount = filteredIncomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  // Pagination Calculations
+  const totalPages = Math.ceil(filteredIncomes.length / itemsPerPage) || 1;
+  const validCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (validCurrentPage - 1) * itemsPerPage;
+  const paginatedIncomes = filteredIncomes.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -267,7 +282,7 @@ export const Income = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredIncomes.map((income) => (
+              {paginatedIncomes.map((income) => (
                 <tr key={income.id} className="hover:bg-secondary/30 transition-colors">
                   <td className="px-6 py-4 font-medium">{income.title}</td>
                   <td className="px-6 py-4">
@@ -308,6 +323,52 @@ export const Income = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 bg-secondary/20 border-t border-border">
+            <span className="text-xs text-muted-foreground">
+              Showing <strong className="text-foreground">{startIndex + 1}</strong> to <strong className="text-foreground">{Math.min(startIndex + itemsPerPage, filteredIncomes.length)}</strong> of <strong className="text-foreground">{filteredIncomes.length}</strong> items (Page {validCurrentPage} of {totalPages})
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={validCurrentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="h-8 px-2.5 text-xs gap-1 cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" /> Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-8 w-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      validCurrentPage === page
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={validCurrentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className="h-8 px-2.5 text-xs gap-1 cursor-pointer"
+              >
+                Next <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
