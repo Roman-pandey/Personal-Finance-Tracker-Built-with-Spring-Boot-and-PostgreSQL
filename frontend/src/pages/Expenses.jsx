@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { expenseService, categoryService } from '../services/dataService';
 import { Button, Input } from '../components/UI';
-import { Plus, Trash2, Edit2, Search, RotateCc, Filter } from 'lucide-react';
+import { Plus, Trash2, Edit2, Search, RotateCcw, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
@@ -51,12 +51,21 @@ export const Expenses = () => {
     fetchData();
   }, []);
 
+  const parseLocalDate = (dateStr) => {
+    if (!dateStr) return null;
+    const cleanStr = String(dateStr).split('T')[0];
+    const parts = cleanStr.split('-').map(Number);
+    if (parts.length < 3 || isNaN(parts[0])) return new Date(dateStr);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  };
+
   const filteredExpenses = expenses.filter((expense) => {
     // Search matching
+    const query = searchTerm.trim().toLowerCase();
     const matchesSearch =
-      !searchTerm ||
-      expense.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (expense.notes && expense.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      !query ||
+      expense.title?.toLowerCase().includes(query) ||
+      (expense.notes && expense.notes.toLowerCase().includes(query));
 
     // Category matching
     const matchesCategory = !selectedCategory || expense.categoryName === selectedCategory;
@@ -70,8 +79,9 @@ export const Expenses = () => {
     if (!matchesSearch || !matchesCategory || !matchesPayment) return false;
     if (selectedTimeframe === 'ALL') return true;
 
-    if (!expense.date) return false;
-    const expDate = new Date(expense.date);
+    const expDate = parseLocalDate(expense.date);
+    if (!expDate) return false;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -85,7 +95,12 @@ export const Expenses = () => {
       const firstDayOfWeek = new Date(today);
       firstDayOfWeek.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
       firstDayOfWeek.setHours(0, 0, 0, 0);
-      return expDate >= firstDayOfWeek;
+
+      const lastDayOfWeek = new Date(firstDayOfWeek);
+      lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+      lastDayOfWeek.setHours(23, 59, 59, 999);
+
+      return expDate >= firstDayOfWeek && expDate <= lastDayOfWeek;
     }
 
     if (selectedTimeframe === 'THIS_MONTH') {
@@ -248,7 +263,7 @@ export const Expenses = () => {
                 }}
                 className="gap-1.5 h-10 px-3 text-xs"
               >
-                <RotateCc className="h-3.5 w-3.5" /> Reset
+                <RotateCcw className="h-3.5 w-3.5" /> Reset
               </Button>
             )}
           </div>
