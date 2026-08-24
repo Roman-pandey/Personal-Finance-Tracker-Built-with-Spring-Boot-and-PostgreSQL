@@ -14,6 +14,7 @@ import java.util.List;
 public interface IncomeRepository extends JpaRepository<Income, Long> {
     Page<Income> findByUserId(Long userId, Pageable pageable);
     List<Income> findByUserId(Long userId);
+    List<Income> findByUserIdOrderByDateDescIdDesc(Long userId);
 
     @Query("SELECT i FROM Income i WHERE i.user.id = :userId AND i.date BETWEEN :startDate AND :endDate")
     List<Income> findByUserIdAndDateBetween(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

@@ -74,7 +74,7 @@ public class IncomeServiceImpl implements IncomeService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", 0L));
 
-        List<Income> incomes = incomeRepository.findByUserId(user.getId());
+        List<Income> incomes = incomeRepository.findByUserIdOrderByDateDescIdDesc(user.getId());
         return incomes.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 

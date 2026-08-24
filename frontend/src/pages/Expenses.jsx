@@ -123,13 +123,19 @@ export const Expenses = () => {
     return true;
   });
 
-  const totalFilteredAmount = filteredExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const sortedFilteredExpenses = [...filteredExpenses].sort((a, b) => {
+    const dateA = parseLocalDate(a.date) || 0;
+    const dateB = parseLocalDate(b.date) || 0;
+    return dateB - dateA || (b.id || 0) - (a.id || 0);
+  });
+
+  const totalFilteredAmount = sortedFilteredExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   // Pagination Calculations
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(sortedFilteredExpenses.length / itemsPerPage) || 1;
   const validCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
   const startIndex = (validCurrentPage - 1) * itemsPerPage;
-  const paginatedExpenses = filteredExpenses.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedExpenses = sortedFilteredExpenses.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

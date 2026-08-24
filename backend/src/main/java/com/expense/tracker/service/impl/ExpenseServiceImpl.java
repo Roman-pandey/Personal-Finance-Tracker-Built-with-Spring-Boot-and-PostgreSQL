@@ -75,7 +75,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", 0L));
 
-        List<Expense> expenses = expenseRepository.findByUserId(user.getId());
+        List<Expense> expenses = expenseRepository.findByUserIdOrderByDateDescIdDesc(user.getId());
         return expenses.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 

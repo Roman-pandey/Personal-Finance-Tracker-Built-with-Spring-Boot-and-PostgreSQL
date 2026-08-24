@@ -116,13 +116,19 @@ export const Income = () => {
     return true;
   });
 
-  const totalFilteredAmount = filteredIncomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const sortedFilteredIncomes = [...filteredIncomes].sort((a, b) => {
+    const dateA = parseLocalDate(a.date) || 0;
+    const dateB = parseLocalDate(b.date) || 0;
+    return dateB - dateA || (b.id || 0) - (a.id || 0);
+  });
+
+  const totalFilteredAmount = sortedFilteredIncomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   // Pagination Calculations
-  const totalPages = Math.ceil(filteredIncomes.length / itemsPerPage) || 1;
+  const totalPages = Math.ceil(sortedFilteredIncomes.length / itemsPerPage) || 1;
   const validCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
   const startIndex = (validCurrentPage - 1) * itemsPerPage;
-  const paginatedIncomes = filteredIncomes.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedIncomes = sortedFilteredIncomes.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
