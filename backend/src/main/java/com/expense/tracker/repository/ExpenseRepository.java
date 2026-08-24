@@ -21,4 +21,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.user.id = :userId")
     BigDecimal getTotalExpenseByUserId(@Param("userId") Long userId);
+
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Expense e WHERE e.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

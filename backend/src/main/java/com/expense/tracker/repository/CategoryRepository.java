@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     
     Optional<Category> findByName(String name);
+    Optional<Category> findByNameAndType(String name, String type);
     
     // Find categories for a specific user OR global categories (where user is null)
     @Query("SELECT c FROM Category c WHERE c.user.id = :userId OR c.user IS NULL")
