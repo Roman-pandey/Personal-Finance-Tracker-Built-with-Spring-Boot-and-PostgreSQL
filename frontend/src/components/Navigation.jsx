@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { LayoutDashboard, Receipt, IndianRupee, Wallet, Settings, LogOut, User as UserIcon, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Receipt, IndianRupee, Wallet, Settings, LogOut, User as UserIcon, Sun, Moon, Tag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +12,7 @@ export const Sidebar = () => {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Expenses', path: '/expenses', icon: Receipt },
     { name: 'Income', path: '/income', icon: Wallet },
+    { name: 'Categories', path: '/categories', icon: Tag },
     { name: 'Profile', path: '/profile', icon: UserIcon },
   ];
 

@@ -134,8 +134,12 @@ public class ExpenseServiceImpl implements ExpenseService {
         dto.setId(expense.getId());
         dto.setTitle(expense.getTitle());
         dto.setAmount(expense.getAmount());
-        dto.setCategoryId(expense.getCategory().getId());
-        dto.setCategoryName(expense.getCategory().getName());
+        if (expense.getCategory() != null) {
+            dto.setCategoryId(expense.getCategory().getId());
+            dto.setCategoryName(expense.getCategory().getName());
+            dto.setCategoryIcon(expense.getCategory().getIcon());
+            dto.setCategoryColor(expense.getCategory().getColor());
+        }
         dto.setDate(expense.getDate());
         dto.setPaymentMethod(expense.getPaymentMethod());
         dto.setNotes(expense.getNotes());

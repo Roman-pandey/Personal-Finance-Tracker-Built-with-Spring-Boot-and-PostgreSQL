@@ -17,8 +17,18 @@ export const incomeService = {
 };
 
 export const categoryService = {
-  getAll: () => api.get('/categories'),
+  getAll: (includeArchived = false, type = '') => {
+    const params = new URLSearchParams();
+    if (includeArchived) params.append('includeArchived', 'true');
+    if (type) params.append('type', type);
+    const queryString = params.toString();
+    return api.get(`/categories${queryString ? `?${queryString}` : ''}`);
+  },
   create: (data) => api.post('/categories', data),
+  update: (id, data) => api.put(`/categories/${id}`, data),
+  archive: (id) => api.put(`/categories/${id}/archive`),
+  restore: (id) => api.put(`/categories/${id}/restore`),
+  delete: (id) => api.delete(`/categories/${id}`),
 };
 
 export const dashboardService = {

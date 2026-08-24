@@ -132,8 +132,12 @@ public class IncomeServiceImpl implements IncomeService {
         dto.setId(income.getId());
         dto.setTitle(income.getTitle());
         dto.setAmount(income.getAmount());
-        dto.setCategoryId(income.getCategory().getId());
-        dto.setCategoryName(income.getCategory().getName());
+        if (income.getCategory() != null) {
+            dto.setCategoryId(income.getCategory().getId());
+            dto.setCategoryName(income.getCategory().getName());
+            dto.setCategoryIcon(income.getCategory().getIcon());
+            dto.setCategoryColor(income.getCategory().getColor());
+        }
         dto.setDate(income.getDate());
         dto.setNotes(income.getNotes());
         return dto;

@@ -37,10 +37,10 @@ export const Income = () => {
     try {
       const [incRes, catRes] = await Promise.all([
         incomeService.getAll(),
-        categoryService.getAll()
+        categoryService.getAll(true, 'INCOME')
       ]);
       setIncomes(incRes.data);
-      setCategories(catRes.data.filter(c => c.type === 'INCOME'));
+      setCategories(catRes.data);
     } catch (error) {
       console.error('Failed to fetch data', error);
       toast.error('Could not load data');
@@ -292,8 +292,15 @@ export const Income = () => {
                 <tr key={income.id} className="hover:bg-secondary/30 transition-colors">
                   <td className="px-6 py-4 font-medium">{income.title}</td>
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full bg-success-500/10 text-success-500 text-xs font-semibold">
-                      {income.categoryName}
+                    <span 
+                      className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
+                      style={{ 
+                        backgroundColor: `${income.categoryColor || '#10b981'}20`, 
+                        color: income.categoryColor || '#10b981' 
+                      }}
+                    >
+                      <span>{income.categoryIcon || '💰'}</span>
+                      <span>{income.categoryName}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">{income.date}</td>
@@ -420,8 +427,10 @@ export const Income = () => {
                       required
                     >
                       <option value="">Select Category</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      {categories.filter(cat => !cat.isArchived || cat.name === formData.categoryName).map(cat => (
+                        <option key={cat.id} value={cat.name}>
+                          {cat.icon || '📦'} {cat.name} {cat.isArchived ? '(Archived)' : ''}
+                        </option>
                       ))}
                     </select>
                   </div>

@@ -18,6 +18,8 @@ public class IncomeDto {
     private BigDecimal amount;
     private Long categoryId;
     private String categoryName;
+    private String categoryIcon;
+    private String categoryColor;
     private LocalDate date;
     private String notes;
 }

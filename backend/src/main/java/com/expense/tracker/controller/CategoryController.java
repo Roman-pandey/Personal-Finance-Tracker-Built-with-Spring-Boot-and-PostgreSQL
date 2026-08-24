@@ -30,8 +30,12 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryDto>> getAllCategories(Authentication authentication) {
-        List<CategoryDto> categories = categoryService.getAllCategories(authentication.getName());
+    public ResponseEntity<List<CategoryDto>> getAllCategories(
+            @RequestParam(value = "includeArchived", required = false, defaultValue = "false") Boolean includeArchived,
+            @RequestParam(value = "type", required = false) String type,
+            Authentication authentication
+    ) {
+        List<CategoryDto> categories = categoryService.getAllCategories(authentication.getName(), includeArchived, type);
         return ResponseEntity.ok(categories);
     }
 
@@ -41,6 +45,18 @@ public class CategoryController {
                                                       Authentication authentication) {
         CategoryDto updatedCategory = categoryService.updateCategory(categoryDto, categoryId, authentication.getName());
         return ResponseEntity.ok(updatedCategory);
+    }
+
+    @PutMapping("/{id}/archive")
+    public ResponseEntity<CategoryDto> archiveCategory(@PathVariable("id") Long categoryId, Authentication authentication) {
+        CategoryDto archivedCategory = categoryService.archiveCategory(categoryId, authentication.getName());
+        return ResponseEntity.ok(archivedCategory);
+    }
+
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<CategoryDto> restoreCategory(@PathVariable("id") Long categoryId, Authentication authentication) {
+        CategoryDto restoredCategory = categoryService.restoreCategory(categoryId, authentication.getName());
+        return ResponseEntity.ok(restoredCategory);
     }
 
     @DeleteMapping("/{id}")

@@ -428,11 +428,63 @@ public class SeedServiceImpl implements SeedService {
                     .orElseGet(() -> categoryRepository.save(Category.builder()
                             .name(name)
                             .type(type)
+                            .icon(getDefaultIcon(name))
+                            .color(getDefaultColor(name))
                             .user(null)
                             .build()));
             map.put(name, category);
         }
         return map;
+    }
+
+    private String getDefaultIcon(String name) {
+        return switch (name) {
+            case "Food" -> "🍔";
+            case "Groceries" -> "🛒";
+            case "Transportation" -> "🚗";
+            case "Gaming" -> "🎮";
+            case "Education" -> "📚";
+            case "Health" -> "🏥";
+            case "Entertainment" -> "🎬";
+            case "Travel" -> "✈️";
+            case "Rent" -> "🏠";
+            case "Utilities" -> "💡";
+            case "Shopping" -> "👕";
+            case "Bills" -> "⚡";
+            case "Salary" -> "💼";
+            case "Freelance" -> "💻";
+            case "Bonus" -> "🎁";
+            case "Investment" -> "📈";
+            case "Contest Earning" -> "🏆";
+            case "Scholarship" -> "🎓";
+            case "Refund" -> "🔄";
+            case "Business" -> "🏢";
+            default -> "📦";
+        };
+    }
+
+    private String getDefaultColor(String name) {
+        return switch (name) {
+            case "Food" -> "#ef4444";
+            case "Groceries" -> "#84cc16";
+            case "Transportation" -> "#3b82f6";
+            case "Gaming", "Entertainment" -> "#8b5cf6";
+            case "Education" -> "#06b6d4";
+            case "Health" -> "#10b981";
+            case "Travel" -> "#6366f1";
+            case "Rent" -> "#f97316";
+            case "Utilities", "Bills" -> "#f59e0b";
+            case "Shopping" -> "#ec4899";
+            case "Salary" -> "#10b981";
+            case "Freelance" -> "#3b82f6";
+            case "Bonus" -> "#8b5cf6";
+            case "Investment" -> "#06b6d4";
+            case "Contest Earning" -> "#f59e0b";
+            case "Scholarship" -> "#6366f1";
+            case "Refund" -> "#14b8a6";
+            case "Business" -> "#334155";
+            default -> "#64748b";
+        };
     }
 
     private String getRandomMethod(Random random, String... methods) {

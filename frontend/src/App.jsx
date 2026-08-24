@@ -6,6 +6,7 @@ import { Login, Register } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { Expenses } from './pages/Expenses';
 import { Income } from './pages/Income';
+import { Categories } from './pages/Categories';
 import { Profile } from './pages/Profile';
 import { DashboardLayout } from './layouts/Layouts';
 
@@ -22,6 +23,7 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/expenses" element={<Expenses />} />
               <Route path="/income" element={<Income />} />
+              <Route path="/categories" element={<Categories />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
 

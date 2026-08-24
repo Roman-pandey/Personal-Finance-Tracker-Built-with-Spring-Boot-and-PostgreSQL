@@ -39,10 +39,10 @@ export const Expenses = () => {
     try {
       const [expRes, catRes] = await Promise.all([
         expenseService.getAll(),
-        categoryService.getAll()
+        categoryService.getAll(true, 'EXPENSE')
       ]);
       setExpenses(expRes.data);
-      setCategories(catRes.data.filter(c => c.type === 'EXPENSE'));
+      setCategories(catRes.data);
     } catch (error) {
       console.error('Failed to fetch data', error);
       toast.error('Could not load data');
@@ -314,8 +314,15 @@ export const Expenses = () => {
                 <tr key={expense.id} className="hover:bg-secondary/30 transition-colors">
                   <td className="px-6 py-4 font-medium">{expense.title}</td>
                   <td className="px-6 py-4">
-                    <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                      {expense.categoryName}
+                    <span 
+                      className="px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 shadow-xs"
+                      style={{ 
+                        backgroundColor: `${expense.categoryColor || '#3b82f6'}20`, 
+                        color: expense.categoryColor || '#3b82f6' 
+                      }}
+                    >
+                      <span>{expense.categoryIcon || '📦'}</span>
+                      <span>{expense.categoryName}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 text-muted-foreground">{expense.date}</td>
@@ -441,8 +448,10 @@ export const Expenses = () => {
                       required
                     >
                       <option value="">Select Category</option>
-                      {categories.map(cat => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      {categories.filter(cat => !cat.isArchived || cat.name === formData.categoryName).map(cat => (
+                        <option key={cat.id} value={cat.name}>
+                          {cat.icon || '📦'} {cat.name} {cat.isArchived ? '(Archived)' : ''}
+                        </option>
                       ))}
                     </select>
                   </div>
