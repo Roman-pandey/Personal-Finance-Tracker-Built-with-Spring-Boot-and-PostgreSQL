@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { categoryService } from '../services/dataService';
 import { Button, Input } from '../components/UI';
-import { Plus, Edit2, Archive, RotateCcw, Trash2, Search, AlertCircle, ShieldAlert, Check, Folder } from 'lucide-react';
+import { Plus, Edit2, Archive, RotateCcw, Trash2, Search, AlertCircle, ShieldAlert, Check, Folder, Tag, TrendingUp, Layers, Calendar as CalendarIcon, ChevronRight, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSettings } from '../context/SettingsContext';
@@ -160,6 +160,50 @@ export const Categories = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [deleteBlockedError, setDeleteBlockedError] = useState(null);
+
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailsCategory, setDetailsCategory] = useState(null);
+
+  const CATEGORY_TAGLINES = {
+    'Food': 'Delicious meals & daily dining options.',
+    'Education': 'Investment in knowledge pays the best interest.',
+    'Entertainment': 'Fun, movies, games, and recreation.',
+    'Groceries': 'Essential kitchen & household supplies.',
+    'Health': 'Wellness, medicine, & healthcare expense.',
+    'Shopping': 'Personal fashion, electronics, & goods.',
+    'Transport': 'Commute, fuel, and travel transit.',
+    'Transportation': 'Commute, fuel, and travel transit.',
+    'Travel': 'Vacations, trips, and lodging.',
+    'Rent': 'Monthly living & housing rent.',
+    'Bills': 'Utility, internet, and recurring payments.',
+    'Salary': 'Primary income & recurring paycheck.',
+    'Freelance': 'Client projects & contract work.',
+    'Other': 'General category for miscellaneous items.'
+  };
+
+  const getCategoryDescription = (cat) => {
+    if (!cat) return '';
+    if (cat.description && cat.description.trim()) return cat.description;
+    return CATEGORY_TAGLINES[cat.name] || `${cat.name} ${cat.type === 'EXPENSE' ? 'expense' : 'income'} category.`;
+  };
+
+  const getDynamicCategoryDate = (cat) => {
+    if (!cat) return 'N/A';
+    if (cat.lastTransactionDate) {
+      const parts = cat.lastTransactionDate.split('-');
+      if (parts.length === 3) {
+        const [y, m, d] = parts.map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+    }
+    return 'No transactions';
+  };
+
+  const handleOpenDetailsModal = (cat) => {
+    setDetailsCategory(cat);
+    setShowDetailsModal(true);
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -320,6 +364,11 @@ export const Categories = () => {
     .filter((cat) => !searchTerm.trim() || cat.name.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort(sortFn);
 
+  const totalActiveAmount = activeCategories.reduce((sum, cat) => sum + Number(cat.totalAmount || 0), 0);
+  const topCategory = activeCategories.length > 0
+    ? [...activeCategories].sort((a, b) => Number(b.totalAmount || 0) - Number(a.totalAmount || 0))[0]
+    : null;
+
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
@@ -327,12 +376,56 @@ export const Categories = () => {
         <div>
           <h1 className="text-3xl font-black tracking-tight text-foreground">Categories</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Manage your custom expense and income categories
+            Manage your custom expense and income categories with real-time statistics
           </p>
         </div>
         <Button onClick={() => handleOpenCreateModal(activeTab)} className="gap-2 cursor-pointer shadow-lg shadow-primary/20">
           <Plus className="h-4 w-4" /> Add Category
         </Button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Active {activeTab === 'EXPENSE' ? 'Expense' : 'Income'} Categories
+            </p>
+            <h3 className="text-2xl font-black text-foreground mt-1">{activeCategories.length}</h3>
+          </div>
+          <div className="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+            <Tag className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Total {activeTab === 'EXPENSE' ? 'Expense' : 'Income'} Spent
+            </p>
+            <h3 className="text-2xl font-black text-foreground mt-1">{formatAmount(totalActiveAmount)}</h3>
+          </div>
+          <div className="h-11 w-11 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shadow-xs">
+            <TrendingUp className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="bg-card p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Top Category</p>
+            <h3 className="text-base font-black text-foreground mt-1 truncate max-w-[140px]">
+              {topCategory ? `${topCategory.icon || '📦'} ${topCategory.name}` : 'N/A'}
+            </h3>
+            {topCategory && (
+              <span className="text-xs text-muted-foreground font-bold">
+                {formatAmount(topCategory.totalAmount || 0)}
+              </span>
+            )}
+          </div>
+          <div className="h-11 w-11 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shadow-xs">
+            <Layers className="h-5 w-5" />
+          </div>
+        </div>
       </div>
 
       {/* Tabs & Controls */}
@@ -412,7 +505,7 @@ export const Categories = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <span>Active Categories</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
                     {activeCategories.length}
                   </span>
                 </h3>
@@ -424,7 +517,7 @@ export const Categories = () => {
                   <p className="text-sm font-semibold text-muted-foreground">No active categories found</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {activeCategories.map((cat) => (
                     <motion.div
                       key={cat.id}
@@ -432,61 +525,122 @@ export const Categories = () => {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="group relative bg-card rounded-2xl border border-border hover:border-primary/30 p-5 transition-all duration-300 hover:shadow-md flex flex-col justify-between"
+                      whileHover={{ y: -3 }}
+                      className="group relative bg-card text-card-foreground border border-border/80 hover:border-primary/40 p-6 rounded-3xl shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between min-h-[260px]"
                     >
-                      <div>
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-105"
-                              style={{ backgroundColor: `${cat.color || '#3b82f6'}20`, color: cat.color || '#3b82f6' }}
-                            >
+                      <div className="space-y-4">
+                        {/* Top Header Row */}
+                        <div className="flex items-start justify-between gap-3">
+                          {/* Icon & Title Info */}
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            {/* Soft Neutral Icon Container */}
+                            <div className="h-13 w-13 rounded-2xl bg-secondary/80 border border-border/60 flex items-center justify-center text-2xl shrink-0">
                               {cat.icon || '📦'}
                             </div>
-                            <div>
-                              <h4 className="font-bold text-foreground leading-tight">{cat.name}</h4>
-                              <span className="text-[11px] font-semibold text-muted-foreground">
-                                {cat.type === 'EXPENSE' ? 'Expense Category' : 'Income Category'}
+
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-bold text-foreground tracking-tight truncate">{cat.name}</h4>
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                                    cat.type === 'EXPENSE'
+                                      ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                      : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                  }`}
+                                >
+                                  {cat.type === 'EXPENSE' ? 'Expense' : 'Income'}
+                                </span>
+                              </div>
+
+                              <p className="text-xs text-muted-foreground font-medium leading-relaxed truncate max-w-[170px]">
+                                {getCategoryDescription(cat)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Amount Display */}
+                          <div className="text-right shrink-0">
+                            <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-0.5">
+                              AMOUNT
+                            </span>
+                            <span className="text-xl font-black text-foreground tracking-tight">
+                              {formatAmount(cat.totalAmount || 0)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Middle Inset Stats Container */}
+                        <div className="bg-secondary/40 border border-border/60 rounded-2xl p-3.5 grid grid-cols-2 divide-x divide-border/60 my-2">
+                          {/* Left Stat: Transactions */}
+                          <div className="flex items-center gap-3 pr-2">
+                            <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center shrink-0 border border-border/40">
+                              <Tag className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 truncate">
+                                TRANSACTIONS
+                              </span>
+                              <span className="text-xs font-extrabold text-foreground truncate block">
+                                {cat.transactionCount || 0} txs
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Right Stat: Dynamic Recent Date */}
+                          <div className="flex items-center gap-3 pl-3">
+                            <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center shrink-0 border border-border/40">
+                              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 truncate">
+                                RECENT DATE
+                              </span>
+                              <span className="text-xs font-extrabold text-foreground truncate block">
+                                {getDynamicCategoryDate(cat)}
                               </span>
                             </div>
                           </div>
                         </div>
-
-                        <div className="flex items-center justify-between pt-3 border-t border-border/50 text-xs">
-                          <span className="text-muted-foreground font-medium">
-                            {cat.transactionCount || 0} transactions
-                          </span>
-                          <span className="font-bold text-foreground">
-                            {formatAmount(cat.totalAmount || 0)}
-                          </span>
-                        </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-1.5 pt-4 mt-2 border-t border-border/40">
+                      {/* Bottom Action Toolbar */}
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2 border-t border-border/50">
                         <button
-                          onClick={() => handleOpenEditModal(cat)}
-                          className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
-                          title="Edit Category"
+                          onClick={() => handleOpenDetailsModal(cat)}
+                          className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors cursor-pointer"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <span>View Details</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          onClick={() => {
-                            setSelectedCategory(cat);
-                            setShowArchiveModal(true);
-                          }}
-                          className="p-2 text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-colors cursor-pointer"
-                          title="Archive Category"
-                        >
-                          <Archive className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(cat)}
-                          className="p-2 text-muted-foreground hover:text-danger-500 hover:bg-danger-500/10 rounded-lg transition-colors cursor-pointer"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditModal(cat)}
+                            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                            title="Edit Category"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedCategory(cat);
+                              setShowArchiveModal(true);
+                            }}
+                            className="p-2 rounded-xl text-muted-foreground hover:text-amber-600 dark:hover:text-amber-400 hover:bg-secondary transition-colors cursor-pointer"
+                            title="Archive Category"
+                          >
+                            <Archive className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteClick(cat)}
+                            className="p-2 rounded-xl text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 hover:bg-secondary transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
@@ -494,6 +648,8 @@ export const Categories = () => {
               )}
             </div>
           )}
+        </div>
+      )}
 
           {/* SECTION 2: Archived Categories */}
           {(archiveFilter === 'ALL' || archiveFilter === 'ARCHIVED' || archivedCategories.length > 0) && (
@@ -501,7 +657,7 @@ export const Categories = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <span>📦 Archived Categories</span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20">
                     {archivedCategories.length}
                   </span>
                 </h3>
@@ -515,7 +671,7 @@ export const Categories = () => {
                   </div>
                 )
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {archivedCategories.map((cat) => (
                     <motion.div
                       key={cat.id}
@@ -523,55 +679,95 @@ export const Categories = () => {
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="group relative bg-secondary/30 rounded-2xl border border-border opacity-80 hover:opacity-100 p-5 transition-all duration-300 flex flex-col justify-between shadow-xs"
+                      className="group relative bg-card/60 text-card-foreground border border-border/60 opacity-80 hover:opacity-100 p-6 rounded-3xl shadow-xs transition-all duration-200 flex flex-col justify-between min-h-[260px]"
                     >
-                      <div>
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm grayscale opacity-75"
-                              style={{ backgroundColor: `${cat.color || '#3b82f6'}20`, color: cat.color || '#3b82f6' }}
-                            >
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="h-13 w-13 rounded-2xl bg-secondary/60 border border-border/60 flex items-center justify-center text-2xl shrink-0 grayscale opacity-75">
                               {cat.icon || '📦'}
                             </div>
-                            <div>
-                              <h4 className="font-bold text-foreground leading-tight line-through opacity-80">{cat.name}</h4>
-                              <span className="text-[11px] font-semibold text-muted-foreground">
-                                Archived {cat.type === 'EXPENSE' ? 'Expense' : 'Income'}
+
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-base font-bold text-foreground/80 line-through tracking-tight truncate">{cat.name}</h4>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                                  Archived
+                                </span>
+                              </div>
+
+                              <p className="text-xs text-muted-foreground font-medium leading-relaxed truncate max-w-[170px]">
+                                {getCategoryDescription(cat)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 mb-0.5">
+                              AMOUNT
+                            </span>
+                            <span className="text-xl font-black text-muted-foreground">
+                              {formatAmount(cat.totalAmount || 0)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-secondary/40 border border-border/60 rounded-2xl p-3.5 grid grid-cols-2 divide-x divide-border/60 my-2">
+                          <div className="flex items-center gap-3 pr-2">
+                            <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center shrink-0 border border-border/40">
+                              <Tag className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 truncate">
+                                TRANSACTIONS
+                              </span>
+                              <span className="text-xs font-extrabold text-foreground truncate block">
+                                {cat.transactionCount || 0} txs
                               </span>
                             </div>
                           </div>
 
-                          <span className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                            Archived
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-3 border-t border-border/50 text-xs">
-                          <span className="text-muted-foreground font-medium">
-                            {cat.transactionCount || 0} transactions
-                          </span>
-                          <span className="font-bold text-muted-foreground">
-                            {formatAmount(cat.totalAmount || 0)}
-                          </span>
+                          <div className="flex items-center gap-3 pl-3">
+                            <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center shrink-0 border border-border/40">
+                              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="block text-[8px] font-bold uppercase tracking-wider text-muted-foreground/80 truncate">
+                                RECENT DATE
+                              </span>
+                              <span className="text-xs font-extrabold text-foreground truncate block">
+                                {getDynamicCategoryDate(cat)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-4 mt-2 border-t border-border/40">
+                      <div className="flex items-center justify-between gap-2 pt-3 mt-2 border-t border-border/50">
                         <button
-                          onClick={() => handleArchiveToggle(cat)}
-                          className="px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                          title="Restore Category"
+                          onClick={() => handleOpenDetailsModal(cat)}
+                          className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors cursor-pointer"
                         >
-                          <RotateCcw className="h-3.5 w-3.5" /> Restore
+                          <span>View Details</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
                         </button>
-                        <button
-                          onClick={() => handleDeleteClick(cat)}
-                          className="p-1.5 text-muted-foreground hover:text-danger-500 hover:bg-danger-500/10 rounded-lg transition-colors cursor-pointer"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleArchiveToggle(cat)}
+                            className="p-2 rounded-xl text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-secondary transition-colors cursor-pointer"
+                            title="Restore Category"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(cat)}
+                            className="p-2 rounded-xl text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 hover:bg-secondary transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
@@ -579,8 +775,96 @@ export const Categories = () => {
               )}
             </div>
           )}
-        </div>
-      )}
+
+      {/* Category Details Modal */}
+      <AnimatePresence>
+        {showDetailsModal && detailsCategory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowDetailsModal(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-lg bg-card border border-border dark:bg-[#0f172a] dark:border-slate-800 rounded-3xl p-6 shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between border-b border-border dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl border"
+                    style={{
+                      backgroundColor: `${detailsCategory.color || '#3b82f6'}20`,
+                      borderColor: `${detailsCategory.color || '#3b82f6'}40`,
+                      color: detailsCategory.color || '#3b82f6'
+                    }}
+                  >
+                    {detailsCategory.icon || '📦'}
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground dark:text-white">{detailsCategory.name}</h3>
+                    <span className="text-xs font-semibold text-muted-foreground dark:text-slate-400">
+                      {detailsCategory.type === 'EXPENSE' ? 'Expense Category' : 'Income Category'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="p-2 rounded-xl text-muted-foreground hover:bg-secondary dark:hover:bg-slate-800 text-foreground dark:text-white cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-4 bg-secondary/60 dark:bg-slate-900/60 rounded-2xl border border-border dark:border-slate-800 space-y-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground dark:text-slate-400">Category Tagline</span>
+                  <p className="text-sm font-medium text-foreground dark:text-slate-300 italic">
+                    "{getCategoryDescription(detailsCategory)}"
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-secondary/60 dark:bg-slate-900/60 rounded-2xl border border-border dark:border-slate-800">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground dark:text-slate-400">Total Recorded</span>
+                    <p className="text-xl font-black text-foreground dark:text-white mt-1">
+                      {formatAmount(detailsCategory.totalAmount || 0)}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-secondary/60 dark:bg-slate-900/60 rounded-2xl border border-border dark:border-slate-800">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-muted-foreground dark:text-slate-400">Total Transactions</span>
+                    <p className="text-xl font-black text-foreground dark:text-white mt-1">
+                      {detailsCategory.transactionCount || 0} txs
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowDetailsModal(false)} className="cursor-pointer">
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    handleOpenEditModal(detailsCategory);
+                  }}
+                  className="cursor-pointer"
+                >
+                  Edit Category
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Create / Edit Modal */}
       <AnimatePresence>

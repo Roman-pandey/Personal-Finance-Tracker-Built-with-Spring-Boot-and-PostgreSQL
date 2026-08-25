@@ -275,13 +275,17 @@ public class CategoryServiceImpl implements CategoryService {
             if ("EXPENSE".equalsIgnoreCase(category.getType())) {
                 long count = expenseRepository.countByCategoryIdAndUserId(category.getId(), userId);
                 BigDecimal sum = expenseRepository.getTotalAmountByCategoryIdAndUserId(category.getId(), userId);
+                java.time.LocalDate latestDate = expenseRepository.findLatestDateByCategoryIdAndUserId(category.getId(), userId);
                 dto.setTransactionCount(count);
                 dto.setTotalAmount(sum != null ? sum : BigDecimal.ZERO);
+                dto.setLastTransactionDate(latestDate != null ? latestDate.toString() : null);
             } else {
                 long count = incomeRepository.countByCategoryIdAndUserId(category.getId(), userId);
                 BigDecimal sum = incomeRepository.getTotalAmountByCategoryIdAndUserId(category.getId(), userId);
+                java.time.LocalDate latestDate = incomeRepository.findLatestDateByCategoryIdAndUserId(category.getId(), userId);
                 dto.setTransactionCount(count);
                 dto.setTotalAmount(sum != null ? sum : BigDecimal.ZERO);
+                dto.setLastTransactionDate(latestDate != null ? latestDate.toString() : null);
             }
         }
 

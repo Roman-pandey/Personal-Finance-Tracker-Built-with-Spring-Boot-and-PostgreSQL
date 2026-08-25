@@ -25,4 +25,5 @@ public class CategoryDto {
     private boolean isGlobal;
     private Long transactionCount;
     private BigDecimal totalAmount;
+    private String lastTransactionDate;
 }

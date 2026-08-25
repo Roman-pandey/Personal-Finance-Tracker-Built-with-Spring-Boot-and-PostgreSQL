@@ -31,6 +31,9 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     @Query("SELECT SUM(i.amount) FROM Income i WHERE i.category.id = :categoryId AND i.user.id = :userId")
     BigDecimal getTotalAmountByCategoryIdAndUserId(@Param("categoryId") Long categoryId, @Param("userId") Long userId);
 
+    @Query("SELECT MAX(i.date) FROM Income i WHERE i.category.id = :categoryId AND i.user.id = :userId")
+    LocalDate findLatestDateByCategoryIdAndUserId(@Param("categoryId") Long categoryId, @Param("userId") Long userId);
+
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM Income i WHERE i.user.id = :userId")
