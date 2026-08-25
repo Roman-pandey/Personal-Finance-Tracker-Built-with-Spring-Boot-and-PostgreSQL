@@ -30,15 +30,31 @@ public class IncomeServiceImpl implements IncomeService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", 0L));
 
-        Category category;
+        Category category = null;
         if (incomeDto.getCategoryId() != null) {
-            category = categoryRepository.findById(incomeDto.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", incomeDto.getCategoryId()));
-        } else if (incomeDto.getCategoryName() != null) {
-            category = categoryRepository.findByName(incomeDto.getCategoryName())
-                    .stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "name", 0L));
-        } else {
+            category = categoryRepository.findById(incomeDto.getCategoryId()).orElse(null);
+        }
+
+        String catName = incomeDto.getCategoryName();
+        if (category == null && catName != null && !catName.isBlank()) {
+            category = categoryRepository.findByUserIdOrUserIsNull(user.getId()).stream()
+                    .filter(c -> c.getType().equalsIgnoreCase("INCOME") && c.getName().equalsIgnoreCase(catName.trim()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (category == null && catName != null && !catName.isBlank()) {
+            Category newCat = new Category();
+            newCat.setName(catName.trim());
+            newCat.setType("INCOME");
+            newCat.setIcon("📦");
+            newCat.setColor("#3b82f6");
+            newCat.setArchived(false);
+            newCat.setUser(user);
+            category = categoryRepository.save(newCat);
+        }
+
+        if (category == null) {
             throw new APIException(HttpStatus.BAD_REQUEST, "Category ID or Name is required");
         }
 
@@ -90,15 +106,31 @@ public class IncomeServiceImpl implements IncomeService {
             throw new APIException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
-        Category category;
+        Category category = null;
         if (incomeDto.getCategoryId() != null) {
-            category = categoryRepository.findById(incomeDto.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", incomeDto.getCategoryId()));
-        } else if (incomeDto.getCategoryName() != null) {
-            category = categoryRepository.findByName(incomeDto.getCategoryName())
-                    .stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "name", 0L));
-        } else {
+            category = categoryRepository.findById(incomeDto.getCategoryId()).orElse(null);
+        }
+
+        String catName = incomeDto.getCategoryName();
+        if (category == null && catName != null && !catName.isBlank()) {
+            category = categoryRepository.findByUserIdOrUserIsNull(user.getId()).stream()
+                    .filter(c -> c.getType().equalsIgnoreCase("INCOME") && c.getName().equalsIgnoreCase(catName.trim()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (category == null && catName != null && !catName.isBlank()) {
+            Category newCat = new Category();
+            newCat.setName(catName.trim());
+            newCat.setType("INCOME");
+            newCat.setIcon("📦");
+            newCat.setColor("#3b82f6");
+            newCat.setArchived(false);
+            newCat.setUser(user);
+            category = categoryRepository.save(newCat);
+        }
+
+        if (category == null) {
             throw new APIException(HttpStatus.BAD_REQUEST, "Category ID or Name is required");
         }
 

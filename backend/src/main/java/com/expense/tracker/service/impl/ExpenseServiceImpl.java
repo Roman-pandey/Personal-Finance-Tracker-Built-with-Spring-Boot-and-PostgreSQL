@@ -30,15 +30,31 @@ public class ExpenseServiceImpl implements ExpenseService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", 0L));
 
-        Category category;
+        Category category = null;
         if (expenseDto.getCategoryId() != null) {
-            category = categoryRepository.findById(expenseDto.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", expenseDto.getCategoryId()));
-        } else if (expenseDto.getCategoryName() != null) {
-            category = categoryRepository.findByName(expenseDto.getCategoryName())
-                    .stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "name", 0L));
-        } else {
+            category = categoryRepository.findById(expenseDto.getCategoryId()).orElse(null);
+        }
+
+        String catName = expenseDto.getCategoryName();
+        if (category == null && catName != null && !catName.isBlank()) {
+            category = categoryRepository.findByUserIdOrUserIsNull(user.getId()).stream()
+                    .filter(c -> c.getType().equalsIgnoreCase("EXPENSE") && c.getName().equalsIgnoreCase(catName.trim()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (category == null && catName != null && !catName.isBlank()) {
+            Category newCat = new Category();
+            newCat.setName(catName.trim());
+            newCat.setType("EXPENSE");
+            newCat.setIcon("📦");
+            newCat.setColor("#3b82f6");
+            newCat.setArchived(false);
+            newCat.setUser(user);
+            category = categoryRepository.save(newCat);
+        }
+
+        if (category == null) {
             throw new APIException(HttpStatus.BAD_REQUEST, "Category ID or Name is required");
         }
 
@@ -91,15 +107,31 @@ public class ExpenseServiceImpl implements ExpenseService {
             throw new APIException(HttpStatus.FORBIDDEN, "Access Denied");
         }
 
-        Category category;
+        Category category = null;
         if (expenseDto.getCategoryId() != null) {
-            category = categoryRepository.findById(expenseDto.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", expenseDto.getCategoryId()));
-        } else if (expenseDto.getCategoryName() != null) {
-            category = categoryRepository.findByName(expenseDto.getCategoryName())
-                    .stream().findFirst()
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "name", 0L));
-        } else {
+            category = categoryRepository.findById(expenseDto.getCategoryId()).orElse(null);
+        }
+
+        String catName = expenseDto.getCategoryName();
+        if (category == null && catName != null && !catName.isBlank()) {
+            category = categoryRepository.findByUserIdOrUserIsNull(user.getId()).stream()
+                    .filter(c -> c.getType().equalsIgnoreCase("EXPENSE") && c.getName().equalsIgnoreCase(catName.trim()))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (category == null && catName != null && !catName.isBlank()) {
+            Category newCat = new Category();
+            newCat.setName(catName.trim());
+            newCat.setType("EXPENSE");
+            newCat.setIcon("📦");
+            newCat.setColor("#3b82f6");
+            newCat.setArchived(false);
+            newCat.setUser(user);
+            category = categoryRepository.save(newCat);
+        }
+
+        if (category == null) {
             throw new APIException(HttpStatus.BAD_REQUEST, "Category ID or Name is required");
         }
 
