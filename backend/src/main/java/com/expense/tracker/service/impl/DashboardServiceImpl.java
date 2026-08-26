@@ -52,7 +52,12 @@ public class DashboardServiceImpl implements DashboardService {
             dto.setId(expense.getId());
             dto.setTitle(expense.getTitle());
             dto.setAmount(expense.getAmount());
-            dto.setCategoryName(expense.getCategory().getName());
+            if (expense.getCategory() != null) {
+                dto.setCategoryId(expense.getCategory().getId());
+                dto.setCategoryName(expense.getCategory().getName());
+                dto.setCategoryIcon(expense.getCategory().getIcon());
+                dto.setCategoryColor(expense.getCategory().getColor());
+            }
             dto.setDate(expense.getDate());
             return dto;
         }).collect(Collectors.toList());

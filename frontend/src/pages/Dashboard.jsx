@@ -313,8 +313,9 @@ export const Dashboard = () => {
                 <tr key={tx.id} className="hover:bg-secondary/40 transition-colors">
                   <td className="py-4 font-bold text-foreground">{tx.title}</td>
                   <td className="py-4">
-                    <span className="px-3 py-1 rounded-full bg-secondary text-xs font-semibold text-foreground border border-border/50">
-                      {tx.categoryName}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary text-xs font-semibold text-foreground border border-border/50">
+                      <span>{tx.categoryIcon || '📦'}</span>
+                      <span>{tx.categoryName}</span>
                     </span>
                   </td>
                   <td className="py-4 text-xs font-medium text-muted-foreground">{tx.date}</td>
